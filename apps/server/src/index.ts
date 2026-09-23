@@ -3,7 +3,7 @@ import { cors } from 'hono/cors'
 
 type Bindings = {
   GOOGLE_API_KEY: string
-  AI: any
+  STABILITY_API_KEY: string
 }
 
 const app = new Hono<{ Bindings: Bindings }>()
@@ -25,51 +25,38 @@ app.post('/api/generate', async (c) => {
   console.log(`Generating image for prompt: ${prompt}`)
 
   try {
-    const response = await c.env.AI.run(
-      '@cf/leonardo/phoenix-1.0',
+    const response = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-image-preview:generateContent?key=${c.env.GOOGLE_API_KEY}`,
       {
-        prompt: prompt,
-      },
-      {
-        gateway: {
-          id: 'lola-image-generator',
-          accountId: 'ce9999d7d59fce98a0bc0e7911cb6e1f'
-        }
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: prompt }] }],
+          generationConfig: { responseModalities: ['TEXT', 'IMAGE'] },
+        }),
       }
     )
 
-    console.log('AI Response Type:', typeof response);
-
-    let base64Image = '';
-
-    if (response instanceof ReadableStream) {
-      console.log('Response is ReadableStream');
-      const arrayBuffer = await new Response(response).arrayBuffer()
-      base64Image = btoa(
-        new Uint8Array(arrayBuffer).reduce(
-          (data, byte) => data + String.fromCharCode(byte),
-          ''
-        )
-      )
-    } else if (response && typeof response === 'object' && 'image' in response) {
-      console.log('Response is Object with image property');
-      base64Image = (response as any).image;
-    } else {
-      console.log('Response is unknown Object:', JSON.stringify(response));
-      // Attempt to treat as direct buffer/blob if possible, or fail gracefully
-      const arrayBuffer = await new Response(response as any).arrayBuffer();
-      base64Image = btoa(
-        new Uint8Array(arrayBuffer).reduce(
-          (data, byte) => data + String.fromCharCode(byte),
-          ''
-        )
-      )
+    if (!response.ok) {
+      const errorText = await response.text()
+      console.error('Gemini API Error:', response.status, errorText)
+      return c.json({ success: false, error: 'Failed to generate image' }, 500)
     }
+
+    const data = await response.json() as any
+    const parts = data?.candidates?.[0]?.content?.parts
+    const imagePart = parts?.find((p: any) => p.inlineData)
+
+    if (!imagePart) {
+      return c.json({ success: false, error: 'No image returned from Gemini' }, 500)
+    }
+
+    const { mimeType, data: base64Image } = imagePart.inlineData
 
     return c.json({
       success: true,
       message: 'Image generated successfully',
-      image: `data:image/jpeg;base64,${base64Image}`
+      image: `data:${mimeType};base64,${base64Image}`
     })
 
   } catch (error) {

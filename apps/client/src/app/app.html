@@ -1,0 +1,72 @@
+<div class="main-content">
+  <div class="form-section container">
+    <h1>Nano Banana 2</h1>
+    <form (ngSubmit)="onSubmit()">
+      <div class="form-group">
+        <label for="item1">Item 1</label>
+        <input
+          type="text"
+          id="item1"
+          name="item1"
+          [value]="item1()"
+          (input)="item1.set($any($event.target).value)"
+          placeholder="e.g., A cute cat wearing sunglasses"
+          required
+          [disabled]="loading()"
+        />
+      </div>
+
+      <div class="form-group">
+        <label for="item2">Item 2</label>
+        <input
+          type="text"
+          id="item2"
+          name="item2"
+          [value]="item2()"
+          (input)="item2.set($any($event.target).value)"
+          placeholder="e.g., A capybara floating on a donut"
+          required
+          [disabled]="loading()"
+        />
+      </div>
+
+      <div class="form-group">
+        <label for="background">Background</label>
+        <input
+          type="text"
+          id="background"
+          name="background"
+          [value]="background()"
+          (input)="background.set($any($event.target).value)"
+          placeholder="e.g., At the beach"
+          required
+          [disabled]="loading()"
+        />
+      </div>
+
+      <button type="submit" [disabled]="loading()">
+        @if (loading()) {
+          Processing...
+        } @else {
+          Submit
+        }
+      </button>
+    </form>
+  </div>
+
+  <div class="result-section container">
+    @if (loading()) {
+      <div class="loading-state">
+        <div class="loading">Building your image...</div>
+      </div>
+    } @else if (imageUrl()) {
+      <div class="image-result">
+        <img [src]="imageUrl()" alt="Generated result" />
+      </div>
+    } @else {
+      <div class="placeholder-state">
+        <p>Your generated image will appear here</p>
+      </div>
+    }
+  </div>
+</div>

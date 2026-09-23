@@ -29,9 +29,7 @@
   //     "database_id": ""
   //   }
   // ],
-  "ai": {
-    "binding": "AI"
-  },
+  // Set GOOGLE_API_KEY as a secret: npx wrangler secret put GOOGLE_API_KEY
   // "observability": {
   //   "enabled": true,
   //   "head_sampling_rate": 1
