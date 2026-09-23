@@ -125,7 +125,6 @@ label {
 }
 
 @keyframes pulse {
-
   0%,
   100% {
     opacity: 1;
@@ -145,12 +144,9 @@ label {
   align-items: flex-start;
   justify-content: center;
   flex-wrap: wrap;
-  /* responsive */
 }
 
-/* Specific adjustments for split view */
 .container {
-  /* Ensure containers flexible in split view */
   width: 100%;
   flex: 1;
   min-width: 300px;
@@ -162,7 +158,6 @@ label {
   justify-content: center;
   align-items: center;
   min-height: 480px;
-  /* Match form height roughly */
 }
 
 .image-result img {
